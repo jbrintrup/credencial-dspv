@@ -106,21 +106,22 @@ export async function POST(request) {
       return rowEmail === email
     })
 
-    if (!match) {
-      return Response.json({
-        ok: true,
-        user: {
-          email,
-          name: payload.name || '',
-        },
-        card: {
-          status: 'NO REGISTRADO',
-          full_name: payload.name || '',
-          course: '',
-          motivo_bloqueo: 'Usuario no registrado en el sistema',
-        },
-      })
-    }
+if (!match) {
+  return Response.json({
+    ok: true,
+    user: {
+      email,
+      name: payload.name || '',
+    },
+    card: {
+      status: 'HABILITADO',
+      full_name: payload.name || '',
+      course: '',
+      motivo_bloqueo: '',
+      is_default: true, // 👈 opcional (por si quieres usarlo después)
+    },
+  })
+}
 
     const fullName =
       findField(match, ['full_name', 'nombre', 'name']) || payload.name || ''

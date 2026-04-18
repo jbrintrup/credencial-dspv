@@ -55,21 +55,22 @@ export default function CredencialPage() {
     )
   }
 
-  const profile = data.card
-  const user = data.user
+  const profile = data.card || {}
+  const user = data.user || {}
 
-  const esExterno = profile?.status === 'NO REGISTRADO'
-  const bloqueado = profile?.status === 'INHABILITADO'
+  const estado = profile?.status || 'CREDENCIAL'
+  const esNoRegistrado = estado === 'NO REGISTRADO'
+  const bloqueado = estado === 'INHABILITADO'
 
-  const headerStyle = esExterno
+  const headerStyle = esNoRegistrado
     ? styles.gray
     : bloqueado
     ? styles.red
     : styles.green
 
   const nombre = profile?.full_name || user?.name || ''
-  const curso = profile?.course || ''
   const email = user?.email || '-'
+  const curso = profile?.course || ''
   const motivo = profile?.motivo_bloqueo || ''
   const fecha = now.toLocaleString('es-CL')
 
@@ -78,7 +79,7 @@ export default function CredencialPage() {
       <div style={styles.wrap}>
         <div style={styles.card}>
           <div style={{ ...styles.header, ...headerStyle }}>
-            {profile?.status || 'CREDENCIAL'}
+            {estado}
           </div>
 
           <div style={styles.brandRow}>
@@ -99,8 +100,8 @@ export default function CredencialPage() {
               <div style={styles.mainEmail}>{email}</div>
             </div>
 
-            {curso ? (
-              <div style={{ textAlign: 'center' }}>
+            {!esNoRegistrado && curso ? (
+              <div style={styles.centerRow}>
                 <div style={styles.coursePill}>{curso}</div>
               </div>
             ) : null}
@@ -110,7 +111,7 @@ export default function CredencialPage() {
               <div style={styles.timeValue}>{fecha}</div>
             </div>
 
-            {(bloqueado || esExterno) && motivo ? (
+            {!esNoRegistrado && bloqueado && motivo ? (
               <div style={styles.motivoBox}>
                 <div style={styles.motivoLabel}>Motivo</div>
                 <div style={styles.motivoValue}>{motivo}</div>
@@ -119,9 +120,20 @@ export default function CredencialPage() {
           </div>
 
           <div style={styles.footer}>
-            
+            <a
+              href="#"
+              style={styles.accountLink}
+              onClick={(e) => {
+                e.preventDefault()
+                cambiarCuenta()
+              }}
+            >
+              Cambiar cuenta
+            </a>
 
-            <button onClick={cerrarSesion} style={{ ...styles.button, marginTop: 12 }}>
+            <div style={styles.hint}>Luego vuelve a abrir la credencial</div>
+
+            <button onClick={cerrarSesion} style={styles.button}>
               Cerrar sesión
             </button>
           </div>
@@ -138,10 +150,14 @@ const styles = {
     width: '100%',
     background: '#eef2f7',
     fontFamily: 'Arial, sans-serif',
-    padding: '12px',
+    padding: '10px',
     boxSizing: 'border-box',
   },
-  wrap: { width: '100%', maxWidth: '720px', margin: '0 auto' },
+  wrap: {
+    width: '100%',
+    maxWidth: '520px',
+    margin: '0 auto',
+  },
   card: {
     width: '100%',
     background: '#ffffff',
@@ -153,77 +169,93 @@ const styles = {
     color: 'white',
     textAlign: 'center',
     fontWeight: 800,
-    padding: '18px 14px',
-    fontSize: '30px',
+    padding: '16px 12px',
+    fontSize: 'clamp(24px, 7vw, 34px)',
     lineHeight: 1.05,
-    letterSpacing: '0.4px',
+    letterSpacing: '0.3px',
   },
-  green: { background: '#15803d' },
-  red: { background: '#b91c1c' },
-  gray: { background: '#6b7280' },
+  green: {
+    background: '#15803d',
+  },
+  red: {
+    background: '#c81e1e',
+  },
+  gray: {
+    background: '#6b7280',
+  },
   brandRow: {
     display: 'grid',
-    gridTemplateColumns: '130px 1fr 130px',
+    gridTemplateColumns: '72px 1fr 72px',
     alignItems: 'center',
     gap: '8px',
-    padding: '14px 12px 12px',
+    padding: '12px 10px',
     background: '#ffffff',
     borderBottom: '1px solid #e5e7eb',
   },
   logoWrap: {
-    height: '78px',
+    height: '68px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '6px',
+    overflow: 'hidden',
   },
   logo: {
-    height: '100%',
-    width: 'auto',
+    maxHeight: '58px',
     maxWidth: '100%',
+    width: 'auto',
     objectFit: 'contain',
     display: 'block',
   },
   brandTitle: {
     textAlign: 'center',
     fontWeight: 800,
-    fontSize: '19px',
-    lineHeight: 1.15,
-    letterSpacing: '0.5px',
+    fontSize: 'clamp(13px, 4.8vw, 19px)',
+    lineHeight: 1.1,
+    letterSpacing: '0.2px',
     color: '#1f2937',
     textTransform: 'uppercase',
-    padding: '0 6px',
+    padding: '0 4px',
+    wordBreak: 'break-word',
   },
-  content: { padding: '18px 16px 16px' },
-  mainId: { textAlign: 'center', marginBottom: '14px' },
+  content: {
+    padding: '16px 14px 14px',
+  },
+  mainId: {
+    textAlign: 'center',
+    marginBottom: '14px',
+  },
   mainName: {
-    fontSize: '31px',
-    lineHeight: 1.08,
+    fontSize: 'clamp(22px, 8vw, 40px)',
+    lineHeight: 1.05,
     fontWeight: 800,
     color: '#111827',
     wordBreak: 'break-word',
+    marginBottom: '8px',
   },
   mainEmail: {
-    fontSize: '18px',
+    fontSize: 'clamp(15px, 4.6vw, 20px)',
     lineHeight: 1.25,
     fontWeight: 700,
-    color: '#374151',
+    color: '#4b5563',
     wordBreak: 'break-word',
+  },
+  centerRow: {
+    textAlign: 'center',
   },
   coursePill: {
     margin: '0 auto 14px',
     display: 'inline-block',
-    padding: '10px 16px',
+    padding: '10px 18px',
     borderRadius: '999px',
     background: '#f3f4f6',
     color: '#111827',
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 4.8vw, 20px)',
     fontWeight: 700,
     textAlign: 'center',
   },
   timeBox: {
     marginTop: '4px',
-    padding: '14px',
+    padding: '14px 12px',
     borderRadius: '16px',
     background: '#eff6ff',
     border: '1px solid #bfdbfe',
@@ -232,14 +264,14 @@ const styles = {
   timeLabel: {
     fontSize: '11px',
     color: '#1d4ed8',
-    marginBottom: '5px',
+    marginBottom: '6px',
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
   timeValue: {
-    fontSize: '24px',
-    lineHeight: 1.12,
+    fontSize: 'clamp(18px, 6vw, 28px)',
+    lineHeight: 1.15,
     fontWeight: 800,
     color: '#1e3a8a',
     wordBreak: 'break-word',
@@ -254,13 +286,13 @@ const styles = {
   motivoLabel: {
     fontSize: '11px',
     color: '#b91c1c',
-    marginBottom: '4px',
+    marginBottom: '6px',
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.4px',
   },
   motivoValue: {
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 4.8vw, 20px)',
     lineHeight: 1.2,
     fontWeight: 700,
     color: '#7f1d1d',
@@ -270,7 +302,7 @@ const styles = {
     textAlign: 'center',
     fontSize: '12px',
     color: '#9ca3af',
-    padding: '10px 14px 14px',
+    padding: '10px 14px 16px',
     borderTop: '1px solid #e5e7eb',
     background: '#fff',
   },
@@ -282,7 +314,11 @@ const styles = {
     fontSize: '12px',
     cursor: 'pointer',
   },
-  hint: { marginTop: '4px', fontSize: '11px', color: '#9ca3af' },
+  hint: {
+    marginTop: '4px',
+    fontSize: '11px',
+    color: '#9ca3af',
+  },
   loading: {
     width: '100%',
     background: 'white',
@@ -294,12 +330,13 @@ const styles = {
     fontSize: '18px',
   },
   button: {
-    padding: '10px 14px',
-    borderRadius: '10px',
+    marginTop: '14px',
+    padding: '11px 18px',
+    borderRadius: '12px',
     border: 'none',
     cursor: 'pointer',
     background: '#111827',
     color: '#ffffff',
-    fontSize: '14px',
+    fontSize: '15px',
   },
 }
