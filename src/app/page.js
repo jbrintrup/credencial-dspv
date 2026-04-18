@@ -9,8 +9,25 @@ const LOGO_CPA = 'https://www.calhomes.cl/imagenes/LOGO_CPA.png'
 export default function HomePage() {
   const router = useRouter()
   const buttonRef = useRef(null)
+  const buttonWrapRef = useRef(null)
+
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
+  const [buttonWidth, setButtonWidth] = useState(320)
+
+  useEffect(() => {
+    const updateButtonWidth = () => {
+      if (!buttonWrapRef.current) return
+      const wrapWidth = buttonWrapRef.current.offsetWidth
+      const newWidth = Math.max(220, Math.min(360, wrapWidth - 24))
+      setButtonWidth(newWidth)
+    }
+
+    updateButtonWidth()
+    window.addEventListener('resize', updateButtonWidth)
+
+    return () => window.removeEventListener('resize', updateButtonWidth)
+  }, [])
 
   useEffect(() => {
     const session = sessionStorage.getItem('credencial_session')
@@ -77,8 +94,9 @@ export default function HomePage() {
           theme: 'outline',
           size: 'large',
           shape: 'pill',
-          width: 320,
+          width: buttonWidth,
           locale: 'es',
+          text: 'signin_with',
         })
 
         setLoading(false)
@@ -108,12 +126,12 @@ export default function HomePage() {
       setLoading(false)
     }
     document.body.appendChild(script)
-  }, [router])
+  }, [router, buttonWidth])
 
   const tryAnotherAccount = () => {
     setErrorMsg('')
     sessionStorage.removeItem('credencial_session')
-    window.open('https://accounts.google.com/AccountChooser', '_blank')
+    window.location.href = 'https://accounts.google.com/AccountChooser'
   }
 
   return (
@@ -144,7 +162,7 @@ export default function HomePage() {
               Acceso permitido para cuentas de los dominios autorizados del colegio y apoderados.
             </div>
 
-            <div style={styles.googleArea}>
+            <div style={styles.googleArea} ref={buttonWrapRef}>
               <div
                 ref={buttonRef}
                 style={{
@@ -168,7 +186,7 @@ export default function HomePage() {
             </div>
 
             <div style={styles.helpText}>
-              Si usas otra cuenta de Google, selecciónala al iniciar sesión.
+              En teléfono, si Google abrió otra cuenta o una sesión antigua, usa “Intentar con otra cuenta”.
             </div>
           </div>
 
@@ -188,14 +206,14 @@ const styles = {
     width: '100%',
     background: '#eef2f7',
     fontFamily: 'Arial, sans-serif',
-    padding: '12px',
+    padding: '10px',
     boxSizing: 'border-box',
     display: 'flex',
     alignItems: 'center',
   },
   wrap: {
     width: '100%',
-    maxWidth: '720px',
+    maxWidth: '560px',
     margin: '0 auto',
   },
   card: {
@@ -210,65 +228,66 @@ const styles = {
     color: '#ffffff',
     textAlign: 'center',
     fontWeight: 800,
-    padding: '18px 14px',
-    fontSize: '28px',
+    padding: '16px 12px',
+    fontSize: 'clamp(22px, 6vw, 30px)',
     lineHeight: 1.1,
-    letterSpacing: '0.4px',
+    letterSpacing: '0.3px',
   },
   brandRow: {
     display: 'grid',
-    gridTemplateColumns: '130px 1fr 130px',
+    gridTemplateColumns: '68px 1fr 68px',
     alignItems: 'center',
     gap: '8px',
-    padding: '18px 12px 14px',
+    padding: '14px 10px 12px',
     background: '#ffffff',
     borderBottom: '1px solid #e5e7eb',
   },
   logoWrap: {
-    height: '78px',
+    height: '64px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '6px',
+    overflow: 'hidden',
   },
   logo: {
-    height: '100%',
-    width: 'auto',
+    maxHeight: '54px',
     maxWidth: '100%',
+    width: 'auto',
     objectFit: 'contain',
     display: 'block',
   },
   brandCenter: {
     textAlign: 'center',
-    padding: '0 8px',
+    padding: '0 4px',
   },
   title: {
-    fontSize: '30px',
+    fontSize: 'clamp(22px, 7vw, 30px)',
     lineHeight: 1.05,
     fontWeight: 800,
     color: '#111827',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
-    lineHeight: 1.35,
+    fontSize: 'clamp(14px, 4.3vw, 16px)',
+    lineHeight: 1.3,
     color: '#4b5563',
   },
   content: {
-    padding: '22px 18px 18px',
+    padding: '18px 14px 18px',
     textAlign: 'center',
   },
   infoBox: {
-    padding: '14px',
+    padding: '13px 14px',
     borderRadius: '16px',
     background: '#eff6ff',
     border: '1px solid #bfdbfe',
     color: '#1e3a8a',
-    fontSize: '15px',
+    fontSize: 'clamp(14px, 4vw, 15px)',
     lineHeight: 1.35,
     marginBottom: '18px',
   },
   googleArea: {
+    width: '100%',
     minHeight: '72px',
     display: 'flex',
     flexDirection: 'column',
@@ -276,6 +295,7 @@ const styles = {
     justifyContent: 'center',
   },
   googleButtonWrap: {
+    width: '100%',
     justifyContent: 'center',
     marginTop: '4px',
   },
@@ -292,11 +312,13 @@ const styles = {
     border: '1px solid #fecaca',
     borderRadius: '12px',
     maxWidth: '520px',
+    width: '100%',
     margin: '0 auto',
+    boxSizing: 'border-box',
   },
   smallButton: {
     marginTop: '10px',
-    padding: '8px 12px',
+    padding: '10px 14px',
     borderRadius: '10px',
     border: 'none',
     cursor: 'pointer',
