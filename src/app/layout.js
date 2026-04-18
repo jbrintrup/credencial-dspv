@@ -17,6 +17,9 @@ export const metadata = {
   openGraph: {
     title: "Credencial DSPV",
     description: "Credencial digital de convenios",
+    icons: {
+    icon: "/favicon.png",
+  },
     url: "https://credencial-dspv.vercel.app/",
     siteName: "DSPV",
     images: [
