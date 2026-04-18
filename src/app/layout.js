@@ -14,12 +14,14 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Credencial Convenios DSPV",
   description: "Sistema de credencial digital para convenios del Colegio Alemán de Puerto Varas",
+
+  icons: {
+    icon: "/favicon.png",
+  },
+
   openGraph: {
     title: "Credencial DSPV",
     description: "Credencial digital de convenios",
-    icons: {
-    icon: "/favicon.png",
-  },
     url: "https://credencial-dspv.vercel.app/",
     siteName: "DSPV",
     images: [
@@ -37,7 +39,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
