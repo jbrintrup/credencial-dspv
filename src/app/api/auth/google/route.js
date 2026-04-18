@@ -81,7 +81,7 @@ export async function POST(request) {
 
     const email = payload.email.toLowerCase()
     const domain = email.split('@')[1] || ''
-    const allowedDomains = ['apoderadosdspv.cl', 'dspuertovaras.cl']
+    const allowedDomains = ['apoderadosdspv.cl', 'dspuertovaras.cl', 'aulasdspv.cl', 'calhomes.cl']
 
     if (!allowedDomains.includes(domain)) {
       return Response.json(
