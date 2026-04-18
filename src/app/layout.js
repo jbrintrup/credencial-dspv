@@ -16,7 +16,9 @@ export const metadata = {
   description: "Sistema de credencial digital para convenios del Colegio Alemán de Puerto Varas",
 
   icons: {
-    icon: "/favicon.png",
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    shortcut: ["/favicon.png"],
+    apple: ["/favicon.png"],
   },
 
   openGraph: {
