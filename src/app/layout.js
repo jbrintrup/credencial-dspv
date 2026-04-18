@@ -14,6 +14,21 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Credencial Convenios DSPV",
   description: "Sistema de credencial digital para convenios del Colegio Alemán de Puerto Varas",
+  openGraph: {
+    title: "Credencial DSPV",
+    description: "Credencial digital de convenios",
+    url: "https://credencial-dspv.vercel.app/",
+    siteName: "DSPV",
+    images: [
+      {
+        url: "https://www.calhomes.cl/imagenes/LOGO_CPA.png",
+        width: 512,
+        height: 512,
+      },
+    ],
+    locale: "es_CL",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }) {
