@@ -80,6 +80,12 @@ async function sendCredentialLog(payload) {
   }
 }
 
+function fireAndForgetLog(payload) {
+  sendCredentialLog(payload).catch((error) => {
+    console.error('Falló registro en Google Sheets:', error)
+  })
+}
+
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -97,11 +103,16 @@ export async function POST(request) {
     const payload = ticket.getPayload()
 
     if (!payload?.email || !payload?.email_verified) {
-      return Response.json({ error: 'Email no verificado por Google' }, { status: 401 })
+      return Response.json(
+        { error: 'Email no verificado por Google' },
+        { status: 401 }
+      )
     }
 
     const email = payload.email.toLowerCase()
     const domain = email.split('@')[1] || ''
+    const userAgent = request.headers.get('user-agent') || ''
+
     const allowedDomains = [
       'apoderadosdspv.cl',
       'dspuertovaras.cl',
@@ -110,17 +121,16 @@ export async function POST(request) {
     ]
 
     if (!allowedDomains.includes(domain)) {
-      await sendCredentialLog({
+      fireAndForgetLog({
         timestamp: new Date().toISOString(),
         email,
         name: payload.name || '',
         domain,
         status: 'DENEGADO',
         course: '',
-        matched_in_csv: 'no',
         motivo: 'Dominio no autorizado',
         source: 'webapp',
-        user_agent: request.headers.get('user-agent') || '',
+        user_agent: userAgent,
       })
 
       return Response.json(
@@ -134,7 +144,10 @@ export async function POST(request) {
     const csvRes = await fetch(process.env.CSV_URL, { cache: 'no-store' })
 
     if (!csvRes.ok) {
-      return Response.json({ error: 'No se pudo leer el CSV' }, { status: 500 })
+      return Response.json(
+        { error: 'No se pudo leer el CSV' },
+        { status: 500 }
+      )
     }
 
     const csvText = await csvRes.text()
@@ -161,17 +174,16 @@ export async function POST(request) {
         },
       }
 
-      await sendCredentialLog({
+      fireAndForgetLog({
         timestamp: new Date().toISOString(),
         email,
         name: payload.name || '',
         domain,
         status: 'HABILITADO',
         course: '',
-        matched_in_csv: 'no',
         motivo: '',
         source: 'webapp',
-        user_agent: request.headers.get('user-agent') || '',
+        user_agent: userAgent,
       })
 
       return Response.json(responsePayload)
@@ -208,20 +220,17 @@ export async function POST(request) {
       },
     }
 
-sendCredentialLog({
-  timestamp: new Date().toISOString(),
-  email,
-  name: payload.name || '',
-  domain,
-  status: 'DENEGADO',
-  course: '',
-  matched_in_csv: 'no',
-  motivo: 'Dominio no autorizado',
-  source: 'webapp',
-  user_agent: request.headers.get('user-agent') || '',
-}).catch((error) => {
-  console.error('Falló registro en Google Sheets:', error)
-})
+    fireAndForgetLog({
+      timestamp: new Date().toISOString(),
+      email,
+      name: fullName || payload.name || '',
+      domain,
+      status: blocked ? 'INHABILITADO' : 'HABILITADO',
+      course: course || '',
+      motivo: blocked ? reason || 'Cuenta no habilitada' : '',
+      source: 'webapp',
+      user_agent: userAgent,
+    })
 
     return Response.json(responsePayload)
   } catch (error) {
