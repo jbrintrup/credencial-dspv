@@ -54,30 +54,9 @@ function csvToObjects(csvText) {
 
 function findField(row, options) {
   for (const key of options) {
-    const value = row[key]
-    if (value && value.toString().trim() !== '') {
-      return value.toString().trim()
-    }
+    if (row[key] !== undefined && row[key] !== '') return row[key]
   }
   return ''
-}
-
-async function sendCredentialLog(payload) {
-  try {
-    const webhookUrl = process.env.LOG_SHEET_WEBHOOK_URL
-    if (!webhookUrl) return
-
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      cache: 'no-store',
-    })
-  } catch (error) {
-    console.error('Falló registro en Google Sheets:', error)
-  }
 }
 
 export async function POST(request) {
@@ -102,27 +81,9 @@ export async function POST(request) {
 
     const email = payload.email.toLowerCase()
     const domain = email.split('@')[1] || ''
-    const allowedDomains = [
-      'apoderadosdspv.cl',
-      'dspuertovaras.cl',
-      'aulasdspv.cl',
-      'cpadspv.cl',
-    ]
+    const allowedDomains = ['apoderadosdspv.cl', 'dspuertovaras.cl', 'aulasdspv.cl', 'calhomes.cl']
 
     if (!allowedDomains.includes(domain)) {
-      await sendCredentialLog({
-        timestamp: new Date().toISOString(),
-        email,
-        name: payload.name || '',
-        domain,
-        status: 'DENEGADO',
-        course: '',
-        matched_in_csv: 'no',
-        motivo: 'Dominio no autorizado',
-        source: 'webapp',
-        user_agent: request.headers.get('user-agent') || '',
-      })
-
       return Response.json(
         {
           error: 'Tu cuenta no pertenece a un dominio autorizado para esta credencial.',
@@ -145,37 +106,22 @@ export async function POST(request) {
       return rowEmail === email
     })
 
-    if (!match) {
-      const responsePayload = {
-        ok: true,
-        user: {
-          email,
-          name: payload.name || '',
-        },
-        card: {
-          status: 'HABILITADO',
-          full_name: payload.name || '',
-          course: '',
-          motivo_bloqueo: '',
-          is_default: true,
-        },
-      }
-
-      await sendCredentialLog({
-        timestamp: new Date().toISOString(),
-        email,
-        name: payload.name || '',
-        domain,
-        status: 'HABILITADO',
-        course: '',
-        matched_in_csv: 'no',
-        motivo: '',
-        source: 'webapp',
-        user_agent: request.headers.get('user-agent') || '',
-      })
-
-      return Response.json(responsePayload)
-    }
+if (!match) {
+  return Response.json({
+    ok: true,
+    user: {
+      email,
+      name: payload.name || '',
+    },
+    card: {
+      status: 'HABILITADO',
+      full_name: payload.name || '',
+      course: '',
+      motivo_bloqueo: '',
+      is_default: true, // 👈 opcional (por si quieres usarlo después)
+    },
+  })
+}
 
     const fullName =
       findField(match, ['full_name', 'nombre', 'name']) || payload.name || ''
@@ -194,7 +140,7 @@ export async function POST(request) {
 
     const blocked = blacklisted || enabled === false || duesStatus === 'bloqueado'
 
-    const responsePayload = {
+    return Response.json({
       ok: true,
       user: {
         email,
@@ -206,25 +152,8 @@ export async function POST(request) {
         course: course || '',
         motivo_bloqueo: blocked ? reason || 'Cuenta no habilitada' : '',
       },
-    }
-
-    await sendCredentialLog({
-      timestamp: new Date().toISOString(),
-      email,
-      name: fullName || payload.name || '',
-      domain,
-      status: blocked ? 'INHABILITADO' : 'HABILITADO',
-      course: course || '',
-      matched_in_csv: 'yes',
-      motivo: blocked ? reason || 'Cuenta no habilitada' : '',
-      source: 'webapp',
-      user_agent: request.headers.get('user-agent') || '',
     })
-
-    return Response.json(responsePayload)
   } catch (error) {
-    console.error('Error en /api/auth/google:', error)
-
     return Response.json(
       { error: error.message || 'Error interno' },
       { status: 500 }
