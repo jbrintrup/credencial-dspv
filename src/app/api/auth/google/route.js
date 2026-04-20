@@ -208,18 +208,20 @@ export async function POST(request) {
       },
     }
 
-    await sendCredentialLog({
-      timestamp: new Date().toISOString(),
-      email,
-      name: fullName || payload.name || '',
-      domain,
-      status: blocked ? 'INHABILITADO' : 'HABILITADO',
-      course: course || '',
-      matched_in_csv: 'yes',
-      motivo: blocked ? reason || 'Cuenta no habilitada' : '',
-      source: 'webapp',
-      user_agent: request.headers.get('user-agent') || '',
-    })
+sendCredentialLog({
+  timestamp: new Date().toISOString(),
+  email,
+  name: payload.name || '',
+  domain,
+  status: 'DENEGADO',
+  course: '',
+  matched_in_csv: 'no',
+  motivo: 'Dominio no autorizado',
+  source: 'webapp',
+  user_agent: request.headers.get('user-agent') || '',
+}).catch((error) => {
+  console.error('Falló registro en Google Sheets:', error)
+})
 
     return Response.json(responsePayload)
   } catch (error) {
