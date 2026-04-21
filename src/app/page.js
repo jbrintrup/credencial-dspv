@@ -159,7 +159,7 @@ export default function HomePage() {
 
           <div style={styles.content}>
             <div style={styles.infoBox}>
-              Acceso permitido para cuentas de los dominios autorizados del colegio (apoderadosdspv.cl , dspuertovaras.cl) *proximamente aulasdspv.cl*
+              Acceso permitido para cuentas de los dominios autorizados del colegio.
             </div>
 
             <div style={styles.googleArea} ref={buttonWrapRef}>
