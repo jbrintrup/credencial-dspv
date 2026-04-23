@@ -67,28 +67,28 @@ function parseBoolean(value) {
   return ['true', '1', 'si', 'sí', 'yes', 'x'].includes(normalized)
 }
 
+// 🔥 NUEVO: LOG A SUPABASE
 async function sendCredentialLog(payload) {
   try {
-    const webhookUrl = process.env.LOG_SHEET_WEBHOOK_URL
-    if (!webhookUrl) return
+    const url = `${process.env.SUPABASE_URL}/rest/v1/credential_logs`
 
-    await fetch(webhookUrl, {
+    await fetch(url, {
       method: 'POST',
       headers: {
+        apikey: process.env.SUPABASE_SECRET_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
         'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
       },
       body: JSON.stringify(payload),
-      cache: 'no-store',
     })
   } catch (error) {
-    console.error('Falló registro en Google Sheets:', error)
+    console.error('Error enviando log a Supabase:', error)
   }
 }
 
 function fireAndForgetLog(payload) {
-  sendCredentialLog(payload).catch((error) => {
-    console.error('Falló registro en Google Sheets:', error)
-  })
+  sendCredentialLog(payload).catch(() => {})
 }
 
 export async function POST(request) {
@@ -121,13 +121,12 @@ export async function POST(request) {
     const allowedDomains = [
       'apoderadosdspv.cl',
       'dspuertovaras.cl',
-      'calhomes.cl',
+      'aulasdspv.cl',
       'cpadspv.cl',
     ]
 
     if (!allowedDomains.includes(domain)) {
       fireAndForgetLog({
-        timestamp: new Date().toISOString(),
         email,
         name: payload.name || '',
         domain,
@@ -140,7 +139,7 @@ export async function POST(request) {
 
       return Response.json(
         {
-          error: 'Tu cuenta no pertenece a un dominio autorizado para esta credencial.',
+          error: 'Tu cuenta no pertenece a un dominio autorizado.',
         },
         { status: 403 }
       )
@@ -159,7 +158,7 @@ export async function POST(request) {
     const rows = csvToObjects(csvText)
 
     const match = rows.find((row) => {
-      const rowEmail = findField(row, ['email', 'correo', 'mail']).toLowerCase()
+      const rowEmail = findField(row, ['email']).toLowerCase()
       return rowEmail === email
     })
 
@@ -182,7 +181,6 @@ export async function POST(request) {
       }
 
       fireAndForgetLog({
-        timestamp: new Date().toISOString(),
         email,
         name: payload.name || '',
         domain,
@@ -197,13 +195,13 @@ export async function POST(request) {
     }
 
     const fullName =
-      findField(match, ['nombre', 'full_name', 'name']) || payload.name || ''
+      findField(match, ['nombre']) || payload.name || ''
 
-    const course = findField(match, ['curso', 'course'])
+    const course = findField(match, ['curso'])
     const hijos = findField(match, ['hijos'])
     const cursosHijos = findField(match, ['cursos_hijos'])
 
-    const blockedRaw = findField(match, ['bloqueado', 'blacklisted', 'blocked'])
+    const blockedRaw = findField(match, ['bloqueado'])
     const reason =
       findField(match, ['motivo']) ||
       findField(match, ['observaciones']) ||
@@ -229,13 +227,12 @@ export async function POST(request) {
     }
 
     fireAndForgetLog({
-      timestamp: new Date().toISOString(),
       email,
       name: fullName || payload.name || '',
       domain,
       status: blocked ? 'INHABILITADO' : 'HABILITADO',
       course: course || '',
-      motivo: blocked ? reason || 'Cuenta no habilitada' : '',
+      motivo: blocked ? reason || '' : '',
       source: 'webapp',
       user_agent: userAgent,
     })
