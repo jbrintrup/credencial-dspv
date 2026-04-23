@@ -125,18 +125,7 @@ export default function CredencialPage() {
           </div>
 
           <div style={styles.footer}>
-            <a
-              href="#"
-              style={styles.accountLink}
-              onClick={(e) => {
-                e.preventDefault()
-                cambiarCuenta()
-              }}
-            >
-              Cambiar cuenta
-            </a>
-
-            <div style={styles.hint}>Luego vuelve a abrir la credencial</div>
+            
 
             <button onClick={cerrarSesion} style={styles.button}>
               Cerrar sesión
