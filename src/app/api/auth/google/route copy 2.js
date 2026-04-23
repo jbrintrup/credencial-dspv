@@ -62,11 +62,6 @@ function findField(row, options) {
   return ''
 }
 
-function parseBoolean(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return ['true', '1', 'si', 'sí', 'yes', 'x'].includes(normalized)
-}
-
 async function sendCredentialLog(payload) {
   try {
     const webhookUrl = process.env.LOG_SHEET_WEBHOOK_URL
@@ -174,8 +169,6 @@ export async function POST(request) {
           status: 'HABILITADO',
           full_name: payload.name || '',
           course: '',
-          hijos: '',
-          cursos_hijos: '',
           motivo_bloqueo: '',
           is_default: true,
         },
@@ -197,19 +190,21 @@ export async function POST(request) {
     }
 
     const fullName =
-      findField(match, ['nombre', 'full_name', 'name']) || payload.name || ''
+      findField(match, ['full_name', 'nombre', 'name']) || payload.name || ''
+    const course = findField(match, ['course', 'curso'])
+    const duesStatus = findField(match, ['dues_status', 'estado', 'estado_cuota']).toLowerCase()
+    const enabledRaw = findField(match, ['enabled', 'habilitado'])
+    const blockedRaw = findField(match, ['blacklisted', 'bloqueado'])
+    const reason = findField(match, ['motivo_bloqueo', 'motivo', 'notes', 'nota'])
 
-    const course = findField(match, ['curso', 'course'])
-    const hijos = findField(match, ['hijos'])
-    const cursosHijos = findField(match, ['cursos_hijos'])
+    const enabled =
+      ['true', '1', 'si', 'sí', 'yes', 'x'].includes(String(enabledRaw).toLowerCase()) ||
+      enabledRaw === ''
 
-    const blockedRaw = findField(match, ['bloqueado', 'blacklisted', 'blocked'])
-    const reason =
-      findField(match, ['motivo']) ||
-      findField(match, ['observaciones']) ||
-      ''
+    const blacklisted =
+      ['true', '1', 'si', 'sí', 'yes', 'x'].includes(String(blockedRaw).toLowerCase())
 
-    const blocked = parseBoolean(blockedRaw)
+    const blocked = blacklisted || enabled === false || duesStatus === 'bloqueado'
 
     const responsePayload = {
       ok: true,
@@ -221,10 +216,7 @@ export async function POST(request) {
         status: blocked ? 'INHABILITADO' : 'HABILITADO',
         full_name: fullName,
         course: course || '',
-        hijos: hijos || '',
-        cursos_hijos: cursosHijos || '',
         motivo_bloqueo: blocked ? reason || 'Cuenta no habilitada' : '',
-        grupo: findField(match, ['grupo']) || '',
       },
     }
 
