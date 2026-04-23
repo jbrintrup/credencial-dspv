@@ -59,16 +59,14 @@ export default function CredencialPage() {
   const user = data.user || {}
 
   const estado = profile?.status || 'CREDENCIAL'
-  const esNoRegistrado = estado === 'NO REGISTRADO'
+  const esNoRegistrado = profile?.is_default === true
   const bloqueado = estado === 'INHABILITADO'
 
-  const headerStyle = esNoRegistrado
-    ? styles.gray
-    : bloqueado
-    ? styles.red
-    : styles.green
+  const headerStyle = bloqueado ? styles.red : styles.green
 
   const nombre = profile?.full_name || user?.name || ''
+  const hijos = profile?.hijos || ''
+  const cursosHijos = profile?.cursos_hijos || ''
   const email = user?.email || '-'
   const curso = profile?.course || ''
   const motivo = profile?.motivo_bloqueo || ''
@@ -97,6 +95,13 @@ export default function CredencialPage() {
           <div style={styles.content}>
             <div style={styles.mainId}>
               {nombre ? <div style={styles.mainName}>{nombre}</div> : null}
+
+              {hijos ? <div style={styles.childrenLine}>{hijos}</div> : null}
+
+              {cursosHijos ? (
+                <div style={styles.childrenCoursesLine}>{cursosHijos}</div>
+              ) : null}
+
               <div style={styles.mainEmail}>{email}</div>
             </div>
 
@@ -111,7 +116,7 @@ export default function CredencialPage() {
               <div style={styles.timeValue}>{fecha}</div>
             </div>
 
-            {!esNoRegistrado && bloqueado && motivo ? (
+            {bloqueado && motivo ? (
               <div style={styles.motivoBox}>
                 <div style={styles.motivoLabel}>Motivo</div>
                 <div style={styles.motivoValue}>{motivo}</div>
@@ -120,7 +125,18 @@ export default function CredencialPage() {
           </div>
 
           <div style={styles.footer}>
+            <a
+              href="#"
+              style={styles.accountLink}
+              onClick={(e) => {
+                e.preventDefault()
+                cambiarCuenta()
+              }}
+            >
+              Cambiar cuenta
+            </a>
 
+            <div style={styles.hint}>Luego vuelve a abrir la credencial</div>
 
             <button onClick={cerrarSesion} style={styles.button}>
               Cerrar sesión
@@ -168,9 +184,6 @@ const styles = {
   },
   red: {
     background: '#c81e1e',
-  },
-  gray: {
-    background: '#6b7280',
   },
   brandRow: {
     display: 'grid',
@@ -221,12 +234,29 @@ const styles = {
     wordBreak: 'break-word',
     marginBottom: '8px',
   },
+  childrenLine: {
+    fontSize: 'clamp(13px, 3.8vw, 16px)',
+    lineHeight: 1.25,
+    fontWeight: 600,
+    color: '#6b7280',
+    marginTop: '6px',
+    wordBreak: 'break-word',
+  },
+  childrenCoursesLine: {
+    fontSize: 'clamp(12px, 3.5vw, 15px)',
+    lineHeight: 1.25,
+    fontWeight: 500,
+    color: '#9ca3af',
+    marginTop: '4px',
+    wordBreak: 'break-word',
+  },
   mainEmail: {
     fontSize: 'clamp(15px, 4.6vw, 20px)',
     lineHeight: 1.25,
     fontWeight: 700,
     color: '#4b5563',
     wordBreak: 'break-word',
+    marginTop: '10px',
   },
   centerRow: {
     textAlign: 'center',
