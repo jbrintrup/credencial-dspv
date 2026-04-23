@@ -121,7 +121,7 @@ export async function POST(request) {
     const allowedDomains = [
       'apoderadosdspv.cl',
       'dspuertovaras.cl',
-      'aulasdspv.cl',
+      'calhomes.cl',
       'cpadspv.cl',
     ]
 
